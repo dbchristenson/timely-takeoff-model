@@ -36,7 +36,7 @@ def convert_float_time(row: pd.Series) -> dt.datetime:
     return row
 
 
-def cull_airport_codes(df: pd.DataFrame):
+def cull_airport_codes(df: pd.DataFrame, thresh: int = 1):
     kept_airport_codes = []
 
     code_cols = ["originCode", "destinationCode"]
@@ -51,7 +51,7 @@ def cull_airport_codes(df: pd.DataFrame):
         col_series["zscore"] = zscores.values
 
         # Keep codes with zscore greater than 0
-        keep_codes = col_series[col_series["zscore"] > 0]["index"].to_list()
+        keep_codes = col_series[col_series["zscore"] > thresh][col].to_list()
 
         kept_airport_codes.extend(keep_codes)
 
@@ -68,5 +68,28 @@ def cull_airport_codes(df: pd.DataFrame):
     return df
 
 
-def yuh():
+def cull_airlines(df: pd.DataFrame):
+    """Remove airlines with fewer than 20000 flights."""
+    airline_counts = df["fullAirlineName"].value_counts()
+    airline_counts = airline_counts[airline_counts > 20000]
+
+    df = df[df["fullAirlineName"].isin(airline_counts.index)]
+
+    return df
+
+
+def combine_airline_code_flight_number(row: pd.Series):
     return
+
+
+def scale_and_encode(df: pd.DataFrame):
+    """Scale numerical columns and encode categorical columns."""
+    num_cols = df.select_dtypes(include="number").columns.to_list()
+    cat_cols = df.select_dtypes(
+        exclude=["number", "datetime"]
+    ).columns.to_list()
+
+    # Remove the target column for each model
+    num_cols.remove("arrivalDelayMinutes")
+
+    return df

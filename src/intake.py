@@ -2,6 +2,7 @@ import pandas as pd
 
 from intake_utils import (
     convert_float_time,
+    cull_airlines,
     cull_airport_codes,
     scale_and_encode,
 )
@@ -91,8 +92,9 @@ def clean_data(df: pd.DataFrame):
     # Convert some columns to the appropriate data types
     df = df.apply(convert_float_time, axis=1)
 
-    # Remove less common airport codes to reduce cardinality
+    # Remove less common entries to reduce cardinality
     df = cull_airport_codes(df)
+    df = cull_airlines(df)
 
     # Scale numerical columns and encode categorical columns
     df = scale_and_encode(df)
