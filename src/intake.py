@@ -1,6 +1,7 @@
 import pandas as pd
 
 from intake_utils import (
+    combine_airline_code_flight_number,
     convert_float_time,
     cull_airlines,
     cull_airport_codes,
@@ -95,6 +96,12 @@ def clean_data(df: pd.DataFrame):
     # Remove less common entries to reduce cardinality
     df = cull_airport_codes(df)
     df = cull_airlines(df)
+
+    # Combine flight number with airline code
+    df = combine_airline_code_flight_number(df)
+
+    # Combine flight info with weather data
+    df = combine_weather(df)
 
     # Scale numerical columns and encode categorical columns
     df = scale_and_encode(df)

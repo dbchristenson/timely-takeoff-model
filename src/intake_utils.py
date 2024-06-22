@@ -78,8 +78,68 @@ def cull_airlines(df: pd.DataFrame):
     return df
 
 
-def combine_airline_code_flight_number(row: pd.Series):
-    return
+def combine_airline_code_flight_number(df: pd.DataFrame):
+    """Combine airline code and flight number into one column."""
+    code = df["operatingAirlineCode"]
+    number = df["flightNumberOperatingAirline"]
+
+    df["flightNumber"] = code + number.astype(str)
+
+    # Drop the original columns
+    cols_to_drop = [
+        "marketingAirlineNetwork",
+        "flightNumberOperatingAirline",
+        "flightNumberMarketingAirline",
+        "fullAirlineName",
+    ]
+
+    # We keep operatingAirlineCode for encoding
+
+    df = df.drop(
+        columns=cols_to_drop,
+    )
+    return df
+
+
+def combine_weather(df: pd.DataFrame):
+    """
+    Combine weather data about origin and destination weather during scheduled
+    arrival and departure.
+    """
+    # load in iata/icao data
+    airport_location_df = pd.read_csv("../data/iata-icao.csv")
+    airport_location_df.head(3)
+
+    # Clean
+    airport_location_drops = ["country_code", "region_name", "icao", "airport"]
+    airport_location_df = airport_location_df.drop(
+        airport_location_drops, axis=1
+    )
+
+    # only keep rows where value in iata column exists in culled_df.originCode or culled_df.destinationCode
+    airport_location_df = airport_location_df[
+        airport_location_df["iata"].isin(df["originCode"])
+        | airport_location_df["iata"].isin(df["destinationCode"])
+    ]
+
+    w_2022_df = pd.read_csv("../data/weatherdata/weather_2022.csv")
+    w_2022_loc_df = pd.read_csv("../data/weatherdata/weather_locs_2022.csv")
+
+    # Create mapper for airport codes to location_id
+    location_dict = {}
+
+    for x, y in zip(
+        airport_location_df["iata"].values, w_2022_loc_df["location_id"].values
+    ):
+        location_dict[y] = x
+
+    # create columns in w_2022_df and w_2022_loc_df called airport_code
+    w_2022_df["airport_code"] = w_2022_df["location_id"].map(location_dict)
+    w_2022_loc_df["airport_code"] = w_2022_loc_df["location_id"].map(
+        location_dict
+    )
+
+    return df
 
 
 def scale_and_encode(df: pd.DataFrame):
