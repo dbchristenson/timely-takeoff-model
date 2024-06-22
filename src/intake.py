@@ -1,10 +1,10 @@
-import datetime as dt
-
 import pandas as pd
-from sklearn.compose import ColumnTransformer
-from sklearn.impute import SimpleImputer
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
+
+from intake_utils import (
+    convert_float_time,
+    cull_airport_codes,
+    scale_and_encode,
+)
 
 COLS_TO_DROP = [
     "Operated_or_Branded_Code_Share_Partners",
@@ -79,37 +79,6 @@ def load_df(file_path: str):
     return pd.read_csv(file_path)
 
 
-def convert_float_time(row: pd.Series) -> dt.datetime:
-    """Converts a float time to a datetime object"""
-    # convert flightDate value to string it is in format YYYYMMDD
-    flight_date = str(row["flightDate"])
-
-    to_dt_columns = [
-        "scheduledDepartureTime",
-        "actualDepartureTime",
-        "scheduledArrivalTime",
-        "actualArrivalTime",
-    ]
-
-    for column in to_dt_columns:
-        # if the value is a datetime object, skip it
-        if isinstance(row[column], dt.datetime):
-            continue
-
-        time = str(int(row[column])).zfill(4)
-        hour = time[:2]
-        minute = time[2:]
-
-        if hour == "24":
-            hour = "00"
-
-        row[column] = dt.datetime.strptime(
-            f"{flight_date} {hour}:{minute}", "%Y-%m-%d %H:%M"
-        )
-
-    return row
-
-
 def clean_data(df: pd.DataFrame):
     """Perform data cleaning on a dataframe."""
     # Preliminary cleaning
@@ -119,16 +88,14 @@ def clean_data(df: pd.DataFrame):
 
     df.columns = NEW_COLS
 
-    # We drop more columns that are not useful, this is messy #hackathon
-    redundant_cols = ["year", "month", "quarter", "dayOfMonth"]
-    empty_cols = ["cancelledBool", "divertedBool"]  # values all emptyionWac",
-
-    df = df.drop(
-        columns=redundant_cols + empty_cols + origin_cols + destination_cols
-    )
-
     # Convert some columns to the appropriate data types
     df = df.apply(convert_float_time, axis=1)
+
+    # Remove less common airport codes to reduce cardinality
+    df = cull_airport_codes(df)
+
+    # Scale numerical columns and encode categorical columns
+    df = scale_and_encode(df)
 
     return df
 
