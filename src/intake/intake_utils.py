@@ -101,13 +101,38 @@ def combine_airline_code_flight_number(df: pd.DataFrame):
     return df
 
 
+def calculate_operating_airline_reliability_score(df: pd.DataFrame):
+    """Calculate a reliability score for each airline."""
+    reliability_score = (
+        df.groupby("operatingAirlineCode")[
+            ["arrivalDelayMinutes", "departureDelayMinutes"]
+        ]
+        .mean()
+        .sum(axis=1)
+        / 2
+    )
+
+    # Create a dictionary to map the operatingAirlineCode to the score
+    reliability_score_dict = reliability_score.to_dict()
+
+    # Map the operatingAirlineCode to the reliability score
+    df["reliabilityScore"] = df["operatingAirlineCode"].map(
+        reliability_score_dict
+    )
+
+    # Drop the operatingAirlineCode column
+    df = df.drop(columns=["operatingAirlineCode"])
+
+    return df
+
+
 def combine_weather(df: pd.DataFrame):
     """
     Combine weather data about origin and destination weather during scheduled
     arrival and departure.
     """
     # load in iata/icao data
-    airport_location_df = pd.read_csv("../data/iata-icao.csv")
+    airport_location_df = pd.read_csv("../../data/iata-icao.csv")
     airport_location_df.head(3)
 
     # Clean
@@ -116,14 +141,15 @@ def combine_weather(df: pd.DataFrame):
         airport_location_drops, axis=1
     )
 
-    # only keep rows where value in iata column exists in culled_df.originCode or culled_df.destinationCode
+    # only keep rows where value in iata column exists in
+    # culled_df.originCode or culled_df.destinationCode
     airport_location_df = airport_location_df[
         airport_location_df["iata"].isin(df["originCode"])
         | airport_location_df["iata"].isin(df["destinationCode"])
     ]
 
-    w_2022_df = pd.read_csv("../data/weatherdata/weather_2022.csv")
-    w_2022_loc_df = pd.read_csv("../data/weatherdata/weather_locs_2022.csv")
+    w_2022_df = pd.read_csv("../../data/weatherdata/weather_2022.csv")
+    w_2022_loc_df = pd.read_csv("../../data/weatherdata/weather_locs_2022.csv")
 
     # Create mapper for airport codes to location_id
     location_dict = {}
@@ -133,11 +159,8 @@ def combine_weather(df: pd.DataFrame):
     ):
         location_dict[y] = x
 
-    # create columns in w_2022_df and w_2022_loc_df called airport_code
+    # create columns in w_2022_df called airport_code
     w_2022_df["airport_code"] = w_2022_df["location_id"].map(location_dict)
-    w_2022_loc_df["airport_code"] = w_2022_loc_df["location_id"].map(
-        location_dict
-    )
 
     return df
 

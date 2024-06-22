@@ -1,6 +1,6 @@
 import pandas as pd
-
 from intake_utils import (
+    calculate_operating_airline_reliability_score,
     combine_airline_code_flight_number,
     convert_float_time,
     cull_airlines,
@@ -99,6 +99,9 @@ def clean_data(df: pd.DataFrame):
 
     # Combine flight number with airline code
     df = combine_airline_code_flight_number(df)
+
+    # Calculate airline reliability score
+    df = calculate_operating_airline_reliability_score(df)
 
     # Combine flight info with weather data
     df = combine_weather(df)
