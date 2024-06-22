@@ -1,3 +1,4 @@
+import pyarrow as pa
 import pyarrow.parquet as pq
 
 
@@ -25,17 +26,15 @@ def save_parquet(table, output_path):
 
 # Example usage
 if __name__ == "__main__":
-    # Path to the input Parquet file
-    input_path = "path_to_input.parquet"
 
-    # Path to the output Parquet file
-    output_path = "path_to_output.parquet"
+    header_path = "../data/flightdata"
+    years = ["2018", "2019", "2022"]
+    in_paths = [f"{header_path}/flights_{y}.parquet" for y in years]
+    out_paths = [f"{header_path}/clean_flights_{y}.parquet" for y in years]
 
-    # Load data
-    data_table = load_parquet(input_path)
+    for in_path, out_path in zip(in_paths, out_paths):
+        table = load_parquet(in_path)
+        cleaned_table = clean_data(table)
+        save_parquet(cleaned_table, out_path)
 
-    # Clean data
-    cleaned_data = clean_data(data_table)
-
-    # Save cleaned data
-    save_parquet(cleaned_data, output_path)
+    print("Data cleaning complete!")
