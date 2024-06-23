@@ -7,7 +7,7 @@ from scale_encode_utils import (
     model_predict,
 )
 
-from ..intake.intake import clean_data, load_df, save_df
+from intake.intake import clean_data, load_df, save_df
 
 if __name__ == "__main__":
     regression_data_pth = (
