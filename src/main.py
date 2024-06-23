@@ -1,13 +1,12 @@
 import os
 
-from scale_encode_utils import (
+from intake.intake import clean_data, load_df, save_df
+from model.scale_encode_utils import (
     dump_predictions,
     dump_preprocesser,
     fit_train,
     model_predict,
 )
-
-from intake.intake import clean_data, load_df, save_df
 
 if __name__ == "__main__":
     regression_data_pth = (
