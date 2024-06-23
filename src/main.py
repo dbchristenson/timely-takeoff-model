@@ -9,14 +9,12 @@ from model.scale_encode_utils import (
 )
 
 if __name__ == "__main__":
-    regression_data_pth = (
-        "../../data/flightdata/regression_flight_data_2022.csv"
-    )
+    regression_data_pth = "../data/flightdata/regression_flight_data_2022.csv"
     classification_data_pth = (
-        "../../data/flightdata/classification_flight_data_2022.csv"
+        "../data/flightdata/classification_flight_data_2022.csv"
     )
 
-    BASE_FLIGHT_DATA_PTH = "../../data/flightdata/flights_2022.csv"
+    BASE_FLIGHT_DATA_PTH = "../data/flightdata/flights_2022.csv"
 
     # Define targets
     y_reg_target = ["departureDelayMinutes", "arrivalDelayMinutes"]

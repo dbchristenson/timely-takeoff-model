@@ -12,8 +12,6 @@ def convert_float_time(row: pd.Series) -> dt.datetime:
         to_dt_columns = [
             "scheduledDepartureTime",
             "scheduledArrivalTime",
-            "wheelsOff",
-            "wheelsOn",
         ]
 
         for column in to_dt_columns:
