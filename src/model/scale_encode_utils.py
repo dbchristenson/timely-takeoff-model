@@ -87,4 +87,4 @@ def model_predict(model, X_test, y_test, model_type: str):
         score = f1_score(y_test, y_pred)
         print(f"F1 Score: {score}")
 
-    return y_pred, y_test, score
+    return y_pred, score

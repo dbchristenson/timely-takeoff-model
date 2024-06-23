@@ -25,6 +25,7 @@ if __name__ == "__main__":
 
     # REGRESSOR
     if os.path.exists(regression_data_pth):
+        print("Regression data found, loading...")
         df = load_df(regression_data_pth)
         df = df.drop(columns=y_clf_target.append("flightNumber"), axis=1)
 
@@ -34,6 +35,7 @@ if __name__ == "__main__":
             fit_train(df, y_reg, "regr")
         )
     else:
+        print("Regression data not found, creating...")
         df = load_df(BASE_FLIGHT_DATA_PTH)
         df = clean_data(df, proportion=0.4, balanced_target=False)
         save_df(df, regression_data_pth)
@@ -42,17 +44,25 @@ if __name__ == "__main__":
 
         y_reg = df[["departureDelayMinutes", "arrivalDelayMinutes"]]
 
+        print("Fitting and training regression model...")
         preprocessor, departure_model, arrival_model, X_test, y_test = (
             fit_train(df, y_reg, "regr")
         )
 
     dump_preprocesser(preprocessor, "results/regr_preprocessor.joblib")
 
-    y_preds, y_test, score = model_predict(
+    print("Predicting regression model...")
+    departure_y_preds, departure_score = model_predict(
         departure_model, X_test, y_test, "regr"
     )
+    arrival_y_preds, arrival_score = model_predict(
+        arrival_model, X_test, y_test, "regr"
+    )
 
-    dump_predictions(y_preds, y_test, "results/regr_predictions.csv")
+    print("Dumping regression predictions...")
+    dump_predictions(departure_y_preds, y_test, "results/regr_departure.csv")
+    dump_predictions(arrival_y_preds, y_test, "results/regr_arrival.csv")
+    print(f"D,A Regression Score: {departure_score}, {arrival_score}")
 
     # CLASSIFIER
     if os.path.exists(classification_data_pth):
@@ -79,8 +89,15 @@ if __name__ == "__main__":
 
     dump_preprocesser(preprocessor, "results/clf_preprocessor.joblib")
 
-    y_preds, y_test, score = model_predict(
+    print("Predicting classification model...")
+    departure_y_preds, departure_score = model_predict(
         departure_model, X_test, y_test, "clf"
     )
+    arrival_y_preds, arrival_score = model_predict(
+        arrival_model, X_test, y_test, "clf"
+    )
 
-    dump_predictions(y_preds, y_test, "results/clf_predictions.csv")
+    print("Dumping classification predictions...")
+    dump_predictions(departure_y_preds, y_test, "results/clf_predictions.csv")
+    dump_predictions(arrival_y_preds, y_test, "results/clf_arrival.csv")
+    print(f"D,A Classification Score: {departure_score}, {arrival_score}")
