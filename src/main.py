@@ -24,7 +24,7 @@ if __name__ == "__main__":
     if os.path.exists(regression_data_pth):
         print("Regression data found, loading...")
         df = load_df(regression_data_pth)
-        df = df.drop(columns=y_clf_target.append("flightNumber"), axis=1)
+        df = df.drop(columns=y_clf_target + ["flightNumber"], axis=1)
 
         y_reg = df[["departureDelayMinutes", "arrivalDelayMinutes"]]
 
@@ -37,7 +37,7 @@ if __name__ == "__main__":
         df = clean_data(df, proportion=0.4, balanced_target=False)
         save_df(df, regression_data_pth)
 
-        df = df.drop(columns=y_clf_target.append("flightNumber"), axis=1)
+        df = df.drop(columns=y_clf_target + ["flightNumber"], axis=1)
 
         y_reg = df[["departureDelayMinutes", "arrivalDelayMinutes"]]
 
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     # CLASSIFIER
     if os.path.exists(classification_data_pth):
         df = load_df(classification_data_pth)
-        df = df.drop(columns=y_reg_target.append("flightNumber"), axis=1)
+        df = df.drop(columns=y_reg_target + ["flightNumber"], axis=1)
 
         y_clf = df[["departureDelayBool", "arrivalDelayBool"]]
 
@@ -76,7 +76,7 @@ if __name__ == "__main__":
         df = clean_data(df, balanced_target=True)
         save_df(df, classification_data_pth)
 
-        df = df.drop(columns=y_reg_target.append("flightNumber"), axis=1)
+        df = df.drop(columns=y_reg_target + ["flightNumber"], axis=1)
 
         y_clf = df[["departureDelayBool", "arrivalDelayBool"]]
 
