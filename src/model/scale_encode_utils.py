@@ -23,6 +23,12 @@ def dump_predictions(preds: list, test: list, file_path: str):
     df.to_csv(file_path, index=False)
 
 
+def dump_model(model, file_path: str):
+    """Save a model object to a file."""
+    dump(model, file_path)
+    return
+
+
 def fit_train(df: pd.DataFrame, y: pd.DataFrame, model_type: str):
     """Creates a preprocessor from a given dataframe."""
     X = df.drop(columns=y, axis=1)

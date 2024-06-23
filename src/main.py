@@ -2,6 +2,7 @@ import os
 
 from intake.intake import clean_data, load_df, save_df
 from model.scale_encode_utils import (
+    dump_model,
     dump_predictions,
     dump_preprocesser,
     fit_train,
@@ -47,6 +48,8 @@ if __name__ == "__main__":
         )
 
     dump_preprocesser(preprocessor, "results/regr_preprocessor.joblib")
+    dump_model(departure_model, "results/regr_departure_model.joblib")
+    dump_model(arrival_model, "results/regr_arrival_model.joblib")
 
     print("Predicting regression model...")
     departure_y_preds, departure_score = model_predict(
@@ -89,6 +92,8 @@ if __name__ == "__main__":
         )
 
     dump_preprocesser(preprocessor, "results/clf_preprocessor.joblib")
+    dump_model(departure_model, "results/clf_departure_model.joblib")
+    dump_model(arrival_model, "results/clf_arrival_model.joblib")
 
     print("Predicting classification model...")
     departure_y_preds, departure_score = model_predict(
