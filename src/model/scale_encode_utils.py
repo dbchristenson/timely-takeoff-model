@@ -69,7 +69,7 @@ def fit_train(df: pd.DataFrame, y: pd.DataFrame, model_type: str):
 
     # Fit it up
     departure_model = departure_pipeline.fit(X_train, y_train.iloc[:, 0])
-    arrival_model = arrival_pipeline.fit(X_train, y_train[:, 1])
+    arrival_model = arrival_pipeline.fit(X_train, y_train.iloc[:, 1])
 
     return preprocessor, departure_model, arrival_model, X_test, y_test
 

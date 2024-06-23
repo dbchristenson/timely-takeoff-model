@@ -50,15 +50,19 @@ if __name__ == "__main__":
 
     print("Predicting regression model...")
     departure_y_preds, departure_score = model_predict(
-        departure_model, X_test, y_test, "regr"
+        departure_model, X_test, y_test.iloc[:, 0], "regr"
     )
     arrival_y_preds, arrival_score = model_predict(
-        arrival_model, X_test, y_test, "regr"
+        arrival_model, X_test, y_test.iloc[:, 1], "regr"
     )
 
     print("Dumping regression predictions...")
-    dump_predictions(departure_y_preds, y_test, "results/regr_departure.csv")
-    dump_predictions(arrival_y_preds, y_test, "results/regr_arrival.csv")
+    dump_predictions(
+        departure_y_preds, y_test.iloc[:, 0], "results/regr_departure.csv"
+    )
+    dump_predictions(
+        arrival_y_preds, y_test.iloc[:, 1], "results/regr_arrival.csv"
+    )
     print(f"D,A Regression Score: {departure_score}, {arrival_score}")
 
     # CLASSIFIER
@@ -88,13 +92,17 @@ if __name__ == "__main__":
 
     print("Predicting classification model...")
     departure_y_preds, departure_score = model_predict(
-        departure_model, X_test, y_test, "clf"
+        departure_model, X_test, y_test.iloc[:, 0], "clf"
     )
     arrival_y_preds, arrival_score = model_predict(
-        arrival_model, X_test, y_test, "clf"
+        arrival_model, X_test, y_test.iloc[:, 1], "clf"
     )
 
     print("Dumping classification predictions...")
-    dump_predictions(departure_y_preds, y_test, "results/clf_predictions.csv")
-    dump_predictions(arrival_y_preds, y_test, "results/clf_arrival.csv")
+    dump_predictions(
+        departure_y_preds, y_test.iloc[:, 0], "results/clf_predictions.csv"
+    )
+    dump_predictions(
+        arrival_y_preds, y_test.iloc[:, 1], "results/clf_arrival.csv"
+    )
     print(f"D,A Classification Score: {departure_score}, {arrival_score}")
