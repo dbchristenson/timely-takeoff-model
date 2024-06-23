@@ -111,6 +111,10 @@ def clean_data(df: pd.DataFrame, proportion: float = 0.1):
     print("Adding weather data...")
     df = add_weather_data(df)
 
+    # Remove duplicate rows and rows with nan values
+    df = df.drop_duplicates()
+    df = df.dropna()
+
     return df
 
 

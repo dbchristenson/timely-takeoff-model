@@ -5,31 +5,34 @@ import pandas as pd
 
 def convert_float_time(row: pd.Series) -> dt.datetime:
     """Converts a float time to a datetime object"""
-    # convert flightDate value to string it is in format YYYYMMDD
-    flight_date = str(row["flightDate"])
+    try:
+        # convert flightDate value to string it is in format YYYYMMDD
+        flight_date = str(row["flightDate"].date())
 
-    to_dt_columns = [
-        "scheduledDepartureTime",
-        "scheduledArrivalTime",
-        "wheelsOff",
-        "wheelsOn",
-    ]
+        to_dt_columns = [
+            "scheduledDepartureTime",
+            "scheduledArrivalTime",
+            "wheelsOff",
+            "wheelsOn",
+        ]
 
-    for column in to_dt_columns:
-        # if the value is a datetime object, skip it
-        if isinstance(row[column], dt.datetime):
-            continue
+        for column in to_dt_columns:
+            # if the value is a datetime object, skip it
+            if isinstance(row[column], dt.datetime):
+                continue
 
-        time = str(int(row[column])).zfill(4)
-        hour = time[:2]
-        minute = time[2:]
+            time = str(int(row[column])).zfill(4)
+            hour = time[:2]
+            minute = time[2:]
 
-        if hour == "24":
-            hour = "00"
+            if hour == "24":
+                hour = "00"
 
-        row[column] = dt.datetime.strptime(
-            f"{flight_date} {hour}:{minute}", "%Y-%m-%d %H:%M"
-        )
+            row[column] = dt.datetime.strptime(
+                f"{flight_date} {hour}:{minute}", "%Y-%m-%d %H:%M"
+            )
+    except Exception as e:
+        print(f"Skipping row due to error: {e}")
 
     return row
 
@@ -85,7 +88,7 @@ def combine_airline_code_flight_number(df: pd.DataFrame):
 
     # Drop the original columns
     cols_to_drop = [
-        "marketingAirlineNetwork",
+        "marketingAirlineCode",
         "flightNumberOperatingAirline",
         "flightNumberMarketingAirline",
         "fullAirlineName",
