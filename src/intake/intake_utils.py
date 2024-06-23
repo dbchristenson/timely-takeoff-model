@@ -10,9 +10,7 @@ def convert_float_time(row: pd.Series) -> dt.datetime:
 
     to_dt_columns = [
         "scheduledDepartureTime",
-        "actualDepartureTime",
         "scheduledArrivalTime",
-        "actualArrivalTime",
         "wheelsOff",
         "wheelsOn",
     ]
@@ -126,28 +124,39 @@ def calculate_operating_airline_reliability_score(df: pd.DataFrame):
     return df
 
 
-def combine_weather(df: pd.DataFrame):
+def add_weather_data(df: pd.DataFrame):
     """
     Combine weather data about origin and destination weather during scheduled
     arrival and departure.
     """
-    # load in iata/icao data
+    NEW_WEATHER_COLS = [
+        "location_id",
+        "time",
+        "precipitation_mm",
+        "rain_mm",
+        "snowfall_mm",
+        "weather_code",
+        "cloud_cover_percent",
+        "wind_speed_kmh",
+        "wind_direction_degrees",
+        "airport_code",
+    ]
+
+    # Load in iata/icao data
     airport_location_df = pd.read_csv("../../data/iata-icao.csv")
-    airport_location_df.head(3)
 
     # Clean
-    airport_location_drops = ["country_code", "region_name", "icao", "airport"]
-    airport_location_df = airport_location_df.drop(
-        airport_location_drops, axis=1
-    )
+    cols_to_drop = ["country_code", "region_name", "icao", "airport"]
+    airport_location_df = airport_location_df.drop(cols_to_drop, axis=1)
 
-    # only keep rows where value in iata column exists in
+    # Only keep rows where value in iata column exists in
     # culled_df.originCode or culled_df.destinationCode
     airport_location_df = airport_location_df[
         airport_location_df["iata"].isin(df["originCode"])
         | airport_location_df["iata"].isin(df["destinationCode"])
     ]
 
+    # Load historical weather data
     w_2022_df = pd.read_csv("../../data/weatherdata/weather_2022.csv")
     w_2022_loc_df = pd.read_csv("../../data/weatherdata/weather_locs_2022.csv")
 
@@ -159,8 +168,69 @@ def combine_weather(df: pd.DataFrame):
     ):
         location_dict[y] = x
 
-    # create columns in w_2022_df called airport_code
+    # Create columns in w_2022_df called airport_code
     w_2022_df["airport_code"] = w_2022_df["location_id"].map(location_dict)
+    w_2022_df.columns = NEW_WEATHER_COLS
+
+    # Convert time to datetime
+    w_2022_df["time"] = pd.to_datetime(w_2022_df["time"])
+    w_2022_df["hour"] = w_2022_df["time"].dt.hour
+    w_2022_df["date"] = w_2022_df["time"].dt.date
+
+    df.flightDate = df.flightDate.dt.date
+
+    # Add hour column for scheduled departure and arrival time
+    df["scheduledDepartureHour"] = df["scheduledDepartureTime"].dt.hour
+    df["scheduledArrivalHour"] = df["scheduledArrivalTime"].dt.hour
+
+    origin_weather = w_2022_df.copy()
+    destination_weather = w_2022_df.copy()
+
+    origin_cols = {
+        col: "origin_" + col
+        for col in origin_weather.columns
+        if col not in ["airport_code", "date", "time", "hour"]
+    }
+    origin_weather.rename(columns=origin_cols, inplace=True)
+
+    destination_cols = {
+        col: "destination_" + col
+        for col in destination_weather.columns
+        if col not in ["airport_code", "date", "time", "hour"]
+    }
+    destination_weather.rename(columns=destination_cols, inplace=True)
+
+    weather_df = df.merge(
+        origin_weather,
+        how="left",
+        left_on=["originCode", "flightDate", "scheduledDepartureHour"],
+        right_on=["airport_code", "date", "hour"],
+    )
+
+    weather_df = weather_df.merge(
+        destination_weather,
+        how="left",
+        left_on=["destinationCode", "flightDate", "scheduledArrivalHour"],
+        right_on=["airport_code", "date", "hour"],
+    )
+
+    origin_cols_to_drop = [
+        "origin_location_id",
+        "time_x",
+        "airport_code_x",
+        "hour_x",
+        "date_x",
+    ]
+
+    dest_cols_to_drop = [
+        "destination_location_id",
+        "time_y",
+        "airport_code_y",
+        "hour_y",
+        "date_y",
+    ]
+
+    df = weather_df.drop(columns=origin_cols_to_drop + dest_cols_to_drop)
 
     return df
 

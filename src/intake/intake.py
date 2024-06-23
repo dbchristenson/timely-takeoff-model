@@ -1,11 +1,11 @@
 import pandas as pd
 from intake_utils import (
+    add_weather_data,
     calculate_operating_airline_reliability_score,
     combine_airline_code_flight_number,
     convert_float_time,
     cull_airlines,
     cull_airport_codes,
-    scale_and_encode,
 )
 
 COLS_TO_DROP = [
@@ -47,6 +47,8 @@ COLS_TO_DROP = [
     "Quarter",
     "Cancelled",
     "Diverted",
+    "ArrTime",
+    "DepTime",
 ]
 
 NEW_COLS = [
@@ -55,9 +57,7 @@ NEW_COLS = [
     "originCode",
     "destinationCode",
     "scheduledDepartureTime",
-    "actualDepartureTime",
     "departureDelayMinutes",
-    "actualArrivalTime",
     "scheduledAirTime",
     "distanceMiles",
     "dayOfWeek",
@@ -81,7 +81,7 @@ def load_df(file_path: str):
     return pd.read_csv(file_path)
 
 
-def clean_data(df: pd.DataFrame):
+def clean_data(df: pd.DataFrame, proportion: float = 0.1):
     """Perform data cleaning on a dataframe."""
     # Preliminary cleaning
     df = df.dropna()
@@ -90,24 +90,26 @@ def clean_data(df: pd.DataFrame):
 
     df.columns = NEW_COLS
 
-    # Convert some columns to the appropriate data types
+    df.flightDate = pd.to_datetime(df.flightDate)
+
+    df = df.sample(frac=proportion, random_state=42)
+
+    print("Converting columns to appropriate data types...")
     df = df.apply(convert_float_time, axis=1)
 
     # Remove less common entries to reduce cardinality
+    print("Culling less common entries...")
     df = cull_airport_codes(df)
     df = cull_airlines(df)
 
-    # Combine flight number with airline code
+    print("Combining airline code and flight number...")
     df = combine_airline_code_flight_number(df)
 
-    # Calculate airline reliability score
+    print("Calculating operating airline reliability score...")
     df = calculate_operating_airline_reliability_score(df)
 
-    # Combine flight info with weather data
-    df = combine_weather(df)
-
-    # Scale numerical columns and encode categorical columns
-    df = scale_and_encode(df)
+    print("Adding weather data...")
+    df = add_weather_data(df)
 
     return df
 
@@ -119,7 +121,7 @@ def save_df(df: pd.DataFrame, output_path: str):
 
 if __name__ == "__main__":
 
-    header_path = "../data/flightdata"
+    header_path = "../../data/flightdata"
     years = ["2022"]
     in_paths = [f"{header_path}/flights_{y}.csv" for y in years]
     out_paths = [f"{header_path}/clean_flights_{y}.csv" for y in years]
