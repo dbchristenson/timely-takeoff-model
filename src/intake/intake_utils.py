@@ -144,7 +144,7 @@ def add_weather_data(df: pd.DataFrame):
     ]
 
     # Load in iata/icao data
-    airport_location_df = pd.read_csv("../../data/iata-icao.csv")
+    airport_location_df = pd.read_csv("../data/iata-icao.csv")
 
     # Clean
     cols_to_drop = ["country_code", "region_name", "icao", "airport"]
@@ -158,8 +158,8 @@ def add_weather_data(df: pd.DataFrame):
     ]
 
     # Load historical weather data
-    w_2022_df = pd.read_csv("../../data/weatherdata/weather_2022.csv")
-    w_2022_loc_df = pd.read_csv("../../data/weatherdata/weather_locs_2022.csv")
+    w_2022_df = pd.read_csv("../data/weatherdata/weather_2022.csv")
+    w_2022_loc_df = pd.read_csv("../data/weatherdata/weather_locs_2022.csv")
 
     # Create mapper for airport codes to location_id
     location_dict = {}
