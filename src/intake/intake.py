@@ -49,6 +49,10 @@ COLS_TO_DROP = [
     "Diverted",
     "ArrTime",
     "DepTime",
+    "TaxiOut",
+    "TaxiIn",
+    "WheelsOff",
+    "WheelsOn",
 ]
 
 NEW_COLS = [
@@ -66,10 +70,6 @@ NEW_COLS = [
     "operatingAirlineCode",
     "flightNumberOperatingAirline",
     "departureDelayBool",
-    "taxiOut",
-    "wheelsOff",
-    "wheelsOn",
-    "taxiIn",
     "scheduledArrivalTime",
     "arrivalDelayMinutes",
     "arrivalDelayBool",
@@ -81,7 +81,9 @@ def load_df(file_path: str):
     return pd.read_csv(file_path)
 
 
-def clean_data(df: pd.DataFrame, proportion: float = 0.1):
+def clean_data(
+    df: pd.DataFrame, proportion: float = 0.2, balanced_target: bool = True
+):
     """Perform data cleaning on a dataframe."""
     # Preliminary cleaning
     df = df.dropna()
@@ -92,7 +94,17 @@ def clean_data(df: pd.DataFrame, proportion: float = 0.1):
 
     df.flightDate = pd.to_datetime(df.flightDate)
 
-    df = df.sample(frac=proportion, random_state=42)
+    if balanced_target:
+        # Sample so that arrivalDelayBool and departureDelayBool are balanced
+        df_positive = df[df["arrivalDelayBool"] == 1]
+        df_negative = df[df["arrivalDelayBool"] == 0]
+        min_samples = min(len(df_positive), len(df_negative))
+        df_positive = df_positive.sample(n=min_samples, random_state=42)
+        df_negative = df_negative.sample(n=min_samples, random_state=42)
+        df = pd.concat([df_positive, df_negative])
+    else:
+        # Sample proportion of the data
+        df = df.sample(frac=proportion, random_state=42)
 
     print("Converting columns to appropriate data types...")
     df = df.apply(convert_float_time, axis=1)
@@ -120,6 +132,8 @@ def clean_data(df: pd.DataFrame, proportion: float = 0.1):
 
 def save_df(df: pd.DataFrame, output_path: str):
     """Save a pandas DataFrame to a csv file."""
+    print(df.shape)
+
     df.to_csv(output_path, index=False)
 
 
@@ -128,7 +142,7 @@ if __name__ == "__main__":
     header_path = "../../data/flightdata"
     years = ["2022"]
     in_paths = [f"{header_path}/flights_{y}.csv" for y in years]
-    out_paths = [f"{header_path}/clean_flights_{y}.csv" for y in years]
+    out_paths = [f"{header_path}/balanced_flights_{y}.csv" for y in years]
 
     for in_path, out_path in zip(in_paths, out_paths):
         table = load_df(in_path)

@@ -236,16 +236,3 @@ def add_weather_data(df: pd.DataFrame):
     df = weather_df.drop(columns=origin_cols_to_drop + dest_cols_to_drop)
 
     return df
-
-
-def scale_and_encode(df: pd.DataFrame):
-    """Scale numerical columns and encode categorical columns."""
-    num_cols = df.select_dtypes(include="number").columns.to_list()
-    cat_cols = df.select_dtypes(
-        exclude=["number", "datetime"]
-    ).columns.to_list()
-
-    # Remove the target column for each model
-    num_cols.remove("arrivalDelayMinutes")
-
-    return df
